@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STORE
+  SCHOOL
+  USER
+}
+
+enum FoodStatus {
+  AVAILABLE
+  IN_TRANSIT
+  DELIVERED
+  EXPIRED
+}
+
+enum DeliveryStatus {
+  PENDING
+  COMPLETED
+  TIMEOUT
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(USER)
+  points    Float    @default(0)
+  lat       Float?
+  lng       Float?
+  foodItems FoodItem[] @relation("StoreFood")
+  deliveries Delivery[] @relation("CourierDeliveries")
+  schoolDeliveries Delivery[] @relation("SchoolDeliveries")
+  createdAt DateTime @default(now())
+}
+
+enum FoodCategory {
+  CANTEEN
+  STORE
+  EVENT
+}
+
+model FoodItem {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float        @default(0)
+  status      FoodStatus   @default(AVAILABLE)
+  category    FoodCategory @default(STORE)
+  expiryDate  DateTime
+  storeId     Int
+  store       User         @relation("StoreFood", fields: [storeId], references: [id])
+  deliveries  Delivery[]
+  createdAt   DateTime     @default(now())
+}
+
+model Delivery {
+  id            Int            @id @default(autoincrement())
+  foodId        Int
+  food          FoodItem       @relation(fields: [foodId], references: [id])
+  courierId     Int
+  courier       User           @relation("CourierDeliveries", fields: [courierId], references: [id])
+  schoolId      Int
+  school        User           @relation("SchoolDeliveries", fields: [schoolId], references: [id])
+  startTime     DateTime       @default(now())
+  endTime       DateTime?
+  status        DeliveryStatus @default(PENDING)
+  pointsEarned  Float          @default(0)
+  verificationCode String?      // 4位數字驗證碼
+  lockerId      Int?           // 對應 6 個伺服馬達 (1-6)
+  createdAt     DateTime       @default(now())
+}
+
+model Reward {
+  id        Int      @id @default(autoincrement())
+  name      String
+  pointCost Float
+  stock     Int      @default(0)
+  createdAt DateTime @default(now())
+}
