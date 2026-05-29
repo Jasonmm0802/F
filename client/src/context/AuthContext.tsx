@@ -1,10 +1,12 @@
 'use client';
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: any;
   token: string | null;
+  setUser: React.Dispatch<React.SetStateAction<any>>;
   login: (data: any) => void;
   logout: () => void;
 }
@@ -19,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
+
     if (savedToken && savedUser) {
       setToken(savedToken);
       setUser(JSON.parse(savedUser));
@@ -42,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, setUser, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
